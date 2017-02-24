@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-lm -Wall
 
-all: zeta0
+all: num_pi
 
-zeta0: main.c zeta.c
-	$(CC) $(CFLAGS) -o zeta0.out main.c zeta.c
+num_pi: num_pi.c zeta.c
+	$(CC) $(CFLAGS) -o num_pi.out num_pi.c zeta.c
