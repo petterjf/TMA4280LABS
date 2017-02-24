@@ -8,3 +8,6 @@ num_pi: num_pi.c zeta.c
 
 utest: utest.c zeta.c
 	$(CC) $(CFLAGS) -o utest.out utest.c zeta.c
+
+vtest: vtest.c zeta.c
+	$(CC) $(CFLAGS) -o vtest.out vtest.c zeta.c
