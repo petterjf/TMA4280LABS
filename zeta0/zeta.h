@@ -1,6 +1,6 @@
 #ifndef ZETA_H
 #define ZETA_H
 
-double zeta(int);
+double zeta(unsigned long int);
 
 #endif // ZETA_H
