@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
+#include "mach.h"
 
 int main(int argc, char **argv) {
 	if (argc != 2) return 1;
@@ -10,8 +11,6 @@ int main(int argc, char **argv) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Status status;
-	int tag = 100;
 
 	double log_size = log(size)/log(2);
 	if (floor(log_size) != ceil(log_size)) {
@@ -19,15 +18,36 @@ int main(int argc, char **argv) {
 	}
 
 	int n_tot = atoi(argv[1]);
-	int n = ceil((double) n_tot/size); // length of each vector
-	int l = rank*n;
-	int u = (rank+1)*n - 1;
-	if (l >= n_tot) {
+
+	int n, l, u;
+	n = ceil((double) n_tot/size); // length of each vector
+	l = rank*n + 1;
+	u = (rank+1)*n;
+	double sum;
+	if (l > n_tot) {
 		l = u = 0;
-	} else if (u >= n_tot) {
-		u = n_tot - 1;
+		sum = 0;
+	} else {
+		if (u > n_tot) {
+			u = n_tot;
+		}
+		sum = 4*mach(1.0/5.0, l, u) - mach(1.0/239.0, l, u);
 	}
-	printf("I am %d, with (%d,%d)\n", rank, l, u);
+
+	double * sums;
+	if (rank == 0) {
+		sums = (double *) malloc(sizeof(double)*size);
+	}
+	MPI_Gather(&sum, 1, MPI_DOUBLE, sums, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+	if (rank == 0) {
+		double g_sum = 0; 
+		 for (int i = 0; i < size; i++) {
+		 	g_sum += sums[i];
+		 }
+		 double num_pi = 4*g_sum;
+		 printf("%.17g\n", num_pi);
+	}
 
 	MPI_Finalize();
 	return 0;
