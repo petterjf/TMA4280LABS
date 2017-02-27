@@ -41,11 +41,11 @@ int main(int argc, char **argv) {
 	MPI_Gather(&sum, 1, MPI_DOUBLE, sums, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
 	if (rank == 0) {
-		double g_sum = 0; 
+		double num_pi = 0; 
 		 for (int i = 0; i < size; i++) {
-		 	g_sum += sums[i];
+		 	num_pi += sums[i];
 		 }
-		 double num_pi = 4*g_sum;
+		 num_pi = 4*num_pi;
 		 printf("%.17g\n", num_pi);
 	}
 
