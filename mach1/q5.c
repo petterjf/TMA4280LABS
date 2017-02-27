@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
 	if (rank == 0) {
 		double num_pi = 0; 
-		 for (int i = 0; i < size; i++) {
+		for (int i = 0; i < size; i++) {
 		 	num_pi += sums[i];
 		 }
 		 num_pi = 4*num_pi;
