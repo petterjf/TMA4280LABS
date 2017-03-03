@@ -8,7 +8,6 @@ int main(int argc, char **argv) {
 
 	int n = atoi(argv[1]);
 	double num_pi = 4*(4*mach(1.0/5.0, n) - mach(1.0/239.0, n));
-	printf("Accuracy: %.17g\n", fabs(M_PI - num_pi));
-
+	printf("Accuracy: %12.5e\n", fabs(M_PI - num_pi));
 	return 0;
 }
