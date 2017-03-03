@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
-#include <time.h>
 #include "mach.h"
 
 int main(int argc, char **argv) {
@@ -13,9 +12,9 @@ int main(int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+	double time;
 	if (rank == 0) {
-		clock_t time = clock();
-
+		time = MPI_Wtime();
 		double log_size = log(size)/log(2);
 		if (floor(log_size) != ceil(log_size)) {
 			MPI_Abort(MPI_COMM_WORLD, MPI_ERR_DIMS);
@@ -53,7 +52,8 @@ int main(int argc, char **argv) {
 		
 		num_pi = 4*num_pi;
 		double acc = fabs(M_PI - num_pi);
-		double time = (clock() - time)/CLOCKS_PER_SEC; 
+
+		time = 1e3*(MPI_Wtime() - time);
 		printf("Accuracy: %.17g. Time: %f ms.\n", acc, time);
 	}
 
