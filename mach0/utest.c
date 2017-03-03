@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
 
 	double sum = mach(1.0/5.0, 3);
 	double e_sum = 9253.0/46875.0; // expected mach sum when x = 1/5 and n = 3
-	printf("%f\n", sum - e_sum);
+	printf("%.17g\n", sum - e_sum);
 
 	return 0;
 }

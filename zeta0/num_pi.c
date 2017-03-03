@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
 	double sum = zeta(n);
 
 	double num_pi = sqrt(6*sum);
-	printf("%f\n", num_pi);
+	printf("%0.17g\n", num_pi);
 
 	return 0;
 }
