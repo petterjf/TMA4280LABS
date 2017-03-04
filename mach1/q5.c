@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 		double acc = fabs(M_PI - num_pi);
 
 		time = 1e3*(MPI_Wtime() - time);
-		printf("Accuracy: %.17g. Time: %f ms.\n", acc, time);
+		printf("Accuracy: %.15f. Time: %f ms.\n", acc, time);
 	}
 
 	MPI_Finalize();
