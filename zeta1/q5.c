@@ -13,8 +13,9 @@ int main(int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+	double time;
 	if (rank == 0) {
-		clock_t time = clock();
+		time = MPI_Wtime();
 
 		double log_size = log(size)/log(2);
 		if (floor(log_size) != ceil(log_size)) {
@@ -22,9 +23,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	int n_tot = atoi(argv[1]);
-
-	int n, l, u;
+	unsigned long int n_tot, n, l, u;
+	n_tot = atoi(argv[1]);
 	n = ceil((double) n_tot/size); // length of each vector
 	l = rank*n + 1;
 	u = (rank+1)*n;
@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
 
 		num_pi = sqrt(6*num_pi);
 		double acc = fabs(M_PI - num_pi);
-		double time = (clock() - time)/CLOCKS_PER_SEC; 
-		printf("Accuracy: %.17g. Time: %f ms.\n", acc, time);
+		time = MPI_Wtime() - time; 
+		printf("Accuracy: %.16g. Time: %f ms.\n", acc, time);
 	}
 	MPI_Finalize();
 	return 0;

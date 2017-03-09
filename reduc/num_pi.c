@@ -20,9 +20,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	int n_tot = atoi(argv[1]);
-
-	int n, l, u;
+	unsigned long int n_tot, n, l, u;
+	n_tot = atoi(argv[1]);
 	n = ceil((double) n_tot/size); // length of each vector
 	l = rank*n + 1;
 	u = (rank+1)*n;
@@ -42,7 +41,7 @@ int main(int argc, char **argv) {
 	num_pi = sqrt(6*num_pi);
 	
 	if (rank == 0) {
-		printf("Accuracy: %.17g.\n", fabs(M_PI - num_pi));
+		printf("Accuracy: %.16g.\n", fabs(M_PI - num_pi));
 	}
 
 	MPI_Finalize();

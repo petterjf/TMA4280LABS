@@ -21,9 +21,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	int n_tot = atoi(argv[1]);
-
-	int n, l, u;
+	unsigned long int n_tot, n, l, u;
+	n_tot = atoi(argv[1]);
 	n = ceil((double) n_tot/size); // length of each vector
 	l = rank*n + 1;
 	u = (rank+1)*n;
@@ -54,7 +53,7 @@ int main(int argc, char **argv) {
 		double acc = fabs(M_PI - num_pi);
 
 		time = 1e3*(MPI_Wtime() - time);
-		printf("Accuracy: %.15f. Time: %f ms.\n", acc, time);
+		printf("Accuracy: %.16g. Time: %f ms.\n", acc, time);
 	}
 
 	MPI_Finalize();

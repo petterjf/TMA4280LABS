@@ -15,15 +15,16 @@ int main(int argc, char **argv) {
 
 	if (size < 2) return 1;
 
-	int n_tot = atoi(argv[1]);
-	int n = ceil((double) n_tot/(size-1)); // Max length of a vector
+	unsigned long int n_tot, n;
+	n_tot = atoi(argv[1]);
+	n = ceil((double) n_tot/(size-1)); // Max length of a vector
 	double * vec;
 	double sum = 0;
 
 	if (rank == 0) {
 		vec = (double *) malloc(sizeof(double)*n_tot);
 
-		for (int i = 1; i <= n_tot; i++) {
+		for (unsigned long int i = 1; i <= n_tot; i++) {
 			vec[i-1] = 1.0/(i*i);
 		}
 
@@ -38,12 +39,12 @@ int main(int argc, char **argv) {
 		}
 
 		double num_pi = sqrt(6*sum);
-		printf("%.17g\n", num_pi, argc);
+		printf("%.16g\n", num_pi);
 	} else {
 		vec = (double *) malloc(sizeof(double)*n);
 
 		MPI_Recv(vec, n, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
-		for (int i = 0; i < n; i++) {
+		for (unsigned long int i = 0; i < n; i++) {
 			sum += vec[i];
 		}
 		MPI_Send(&sum, 1, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD);
