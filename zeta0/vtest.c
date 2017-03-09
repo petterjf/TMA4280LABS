@@ -19,9 +19,9 @@ int main(int argc, char **argv) {
 	// save content to file
 	FILE *fp = fopen("vtest.dat", "w");
 	for (int k = 0; k < k_max-1; k++) {
-		fprintf(fp, "%.17g ", err_vec[k]);
+		fprintf(fp, "%.16g ", err_vec[k]);
 	}
-	fprintf(fp, "%.17g\n", err_vec[k_max-1]);
+	fprintf(fp, "%.16g\n", err_vec[k_max-1]);
 	fclose(fp);
 
 	return 0;
