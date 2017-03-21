@@ -28,8 +28,7 @@ real rhs(real x, real y);
 void fst_(real *v, int *n, real *w, int *nn);
 void fstinv_(real *v, int *n, real *w, int *nn);
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     if (argc < 2) {
         printf("Usage:\n");
         printf("  poisson n\n\n");
@@ -108,8 +107,7 @@ real rhs(real x, real y) {
     return 2 * (y - y*y + x - x*x);
 }
 
-void transpose(real **bt, real **b, size_t m)
-{
+void transpose(real **bt, real **b, size_t m) {
     for (size_t i = 0; i < m; i++) {
         for (size_t j = 0; j < m; j++) {
             bt[i][j] = b[j][i];
@@ -117,16 +115,14 @@ void transpose(real **bt, real **b, size_t m)
     }
 }
 
-real *mk_1D_array(size_t n, bool zero)
-{
+real *mk_1D_array(size_t n, bool zero) {
     if (zero) {
         return (real *)calloc(n, sizeof(real));
     }
     return (real *)malloc(n * sizeof(real));
 }
 
-real **mk_2D_array(size_t n1, size_t n2, bool zero)
-{
+real **mk_2D_array(size_t n1, size_t n2, bool zero) {
     real **ret = (real **)malloc(n1 * sizeof(real *));
 
     if (zero) {
