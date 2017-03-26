@@ -27,8 +27,8 @@ int main(int argc, char **argv) {
 
    size_t m, n, nn;
    n = atoi(argv[1]); // number of internal vertical/horizontal nodes
-   m = n/size; // number of horizontal nodes for each process
-   nn = 4*(n+1); // Fourier coefficients
+   m = n/size; // number of vertical nodes for each process
+   nn = 4*n; // Fourier coefficients
    double h = 1.0/(n+1); // constant grid size
 
    // check that the number of processes and internal nodes is a power of two
