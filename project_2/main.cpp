@@ -17,7 +17,6 @@ void del_2D_array(T **arr);
 extern "C" void fst_(double *v, size_t *n, double *w, size_t *nn);
 extern "C" void fstinv_(double *v, size_t *n, double *w, size_t *nn);
 
-
 int main(int argc, char **argv) {
    if (argc != 2) return 1;
 
@@ -41,11 +40,11 @@ int main(int argc, char **argv) {
    auto *grid_x = new double[m]; 
    auto *grid_y = new double[n]; 
    auto *diag = new double[n];
+   auto *z = new double[nn];
    auto **soln = mk_2D_array<double>(m,n); // the analytical solution
    auto **b1 = mk_2D_array<double>(m,n); // matrix to transform
    auto **b2 = mk_2D_array<double>(n,m); // matrix to send
    auto **b3 = mk_2D_array<double>(n,m); // receive matrix
-   auto *z = new double[nn];
 
    // x values for the internal nodes
    for (size_t i = 0; i < m; i++) {
@@ -68,7 +67,7 @@ int main(int argc, char **argv) {
    }
 
    // sub-matrices 
-   for (size_t i = 0; i < size; i++) {
+   for (size_t i = 0; i < (size_t)size; i++) {
       for (size_t j = 0; j < m; j++) {
          for (size_t k = 0; k < m; k++) {   
             b2[i*m+j][k] = b1[j][i*m+k];
@@ -86,7 +85,6 @@ int main(int argc, char **argv) {
       fstinv_(b1[i], &n, z, &nn);
    }
 
-   
    // The diagonal of the eigenvalue matrix of T
    for (size_t i = 0; i < n; i++) {
       diag[i] = 2.0 * (1.0 - cos((i+1)*M_PI/(n+1)));
@@ -102,7 +100,7 @@ int main(int argc, char **argv) {
    }
 
    // sub-matrices 
-   for (size_t i = 0; i < size; i++) {
+   for (size_t i = 0; i < (size_t)size; i++) {
       for (size_t j = 0; j < m; j++) {
          for (size_t k = 0; k < m; k++) {   
             b2[i*m+j][k] = b1[j][i*m+k];
