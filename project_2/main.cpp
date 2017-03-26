@@ -5,11 +5,12 @@
 #include "mk2DArray.h"
 
 double rhs(double x, double y);
+double anal_soln(double x, double y);
+bool is_pow2(double x);
+void transpose(double **bt, double **b, size_t m, size_t n);
+
 extern "C" void fst_(double *v, size_t *n, double *w, size_t *nn);
 extern "C" void fstinv_(double *v, size_t *n, double *w, size_t *nn);
-
-void print_matrix(auto **, size_t, size_t);
-void print_vector(auto *, size_t);
 
 
 int main(int argc, char **argv) {
@@ -26,15 +27,8 @@ int main(int argc, char **argv) {
    nn = 4*(n+1); // Fourier coefficients
    double h = 1.0/(n+1); // constant grid size
 
-   // Check that the number of internal nodes in a direction is a power of two
-   double log_n = log(n)/log(2);
-   if (floor(log_n) != ceil(log_n)) {
-      return 1;
-   }
-
-   // Check that the number of processes is a power of two
-   double log_size = log(size)/log(2);
-   if (floor(log_size) != ceil(log_size)) {
+   // check that the number of processes and internal nodes is a power of two
+   if (!(is_pow2(size) && is_pow2(n))) {
       MPI_Abort(MPI_COMM_WORLD, MPI_ERR_DIMS);
    }
 
@@ -42,6 +36,7 @@ int main(int argc, char **argv) {
    auto *grid_x = new double[m]; 
    auto *grid_y = new double[n]; 
    auto *diag = new double[n];
+   auto **soln = mk2DArray<double>(m,n); // the analytical solution
    auto **b1 = mk2DArray<double>(m,n); // matrix to transform
    auto **b2 = mk2DArray<double>(n,m); // matrix to send
    auto **b3 = mk2DArray<double>(n,m);
@@ -59,6 +54,7 @@ int main(int argc, char **argv) {
    for (size_t i = 0; i < m; i++) {
       for (size_t j = 0; j < n; j++) {
          b1[i][j] = h*h*rhs(grid_x[i], grid_y[j]);
+         soln[i][j] = anal_soln(grid_x[i], grid_y[j]);
       }
    }
   
@@ -78,12 +74,7 @@ int main(int argc, char **argv) {
    // send the parts to the right processes
    MPI_Alltoall(*b2, m*m, MPI_DOUBLE, *b3, m*m, MPI_DOUBLE, MPI_COMM_WORLD);
 
-   // transpose
-   for (size_t i = 0; i < m; i++) {
-      for (size_t j = 0; j < n; j++) {
-         b1[i][j] = b3[j][i];
-      }
-   }
+   transpose(b1, b3, n, m);
 
    // inverse transform
    for (size_t i = 0; i < m; i++) {
@@ -118,11 +109,7 @@ int main(int argc, char **argv) {
    MPI_Alltoall(*b2, m*m, MPI_DOUBLE, *b3, m*m, MPI_DOUBLE, MPI_COMM_WORLD);
 
    // transpose
-   for (size_t i = 0; i < m; i++) {
-      for (size_t j = 0; j < n; j++) {
-         b1[i][j] = b3[j][i];
-      }
-   }
+   transpose(b1, b3, n, m);
 
    // inverse transform
    for (size_t i = 0; i < m; i++) {
@@ -130,19 +117,23 @@ int main(int argc, char **argv) {
    }
 
    // Calculate maximal value of solution
-   double u_max = 0.0;
+   //double u_max = 0.0;
+   double max_error = 0;
    for (size_t i = 0; i < m; i++) {
       for (size_t j = 0; j < n; j++) {
-         u_max = u_max > b1[i][j] ? u_max : b1[i][j];
+         //u_max = u_max > b1[i][j] ? u_max : b1[i][j];
+         double error = fabs(b1[i][j] - soln[i][j]);
+         max_error = max_error > error ? max_error : error;
       }
    }
 
    // Get the maximum from all processes
-   MPI_Allreduce(&u_max, &u_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+   //MPI_Allreduce(&u_max, &u_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+   MPI_Allreduce(&max_error, &max_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
    
    // only one process needs to print the result
    if (rank == 0) {
-      printf("u_max = %e\n", u_max);
+      printf("u_max = %e\n", max_error);
    }
 
    del2DArray(b1);
@@ -157,22 +148,24 @@ int main(int argc, char **argv) {
 }
 
 double rhs(double x, double y) {
-   return 2 * (y - y*y + x - x*x);
+   //return 2 * (y - y*y + x - x*x);
+   return 5*M_PI*M_PI*anal_soln(x, y);
 }
 
-void print_matrix(auto **b, size_t m, size_t n) {
-   for (size_t i = 0; i < m; i++) {
-      for (size_t j = 0; j < n; j++) {
-         std::cout << b[i][j] << " ";
-      }
-      std::cout << std::endl;
-   }
+double anal_soln(double x, double y) {
+   return sin(M_PI*x)*sin(2*M_PI*y);
 }
 
+bool is_pow2(double x) {
+   x = log(x)/log(2);
+   return (floor(x) == ceil(x));
+}
 
-void print_vector(auto *b, size_t n) {
+void transpose(double **bt, double **b, size_t m, size_t n) {
+   // m and n are the number of rows and columns, respectively, for b
    for (size_t i = 0; i < n; i++) {
-      std::cout << b[i] << " ";
+      for (size_t j = 0; j < m; j++) {
+         bt[i][j] = b[j][i];
+      }
    }
-   std::cout << std::endl;
 }
