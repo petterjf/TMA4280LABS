@@ -178,6 +178,7 @@ void transpose(double **bt, double **b, size_t m, size_t n) {
    }
 }
 
+// Modified version of the code found at http://stackoverflow.com/a/21944048
 template <typename T>
 T** mk_2D_array(size_t m, size_t n) {
    T** ptr = new T*[m];  // allocate pointers
