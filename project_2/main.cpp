@@ -5,8 +5,8 @@
 #include "mk2DArray.h"
 
 double rhs(double x, double y);
-void fst_(real *v, int *n, real *w, int *nn);
-void fstinv_(real *v, int *n, real *w, int *nn);
+extern "C" void fst_(double *v, size_t *n, double *w, size_t *nn);
+extern "C" void fstinv_(double *v, size_t *n, double *w, size_t *nn);
 
 void print_matrix(auto **, size_t, size_t);
 void print_vector(auto *, size_t);
@@ -15,15 +15,14 @@ void print_vector(auto *, size_t);
 int main(int argc, char **argv) {
    if (argc != 2) return 1;
 
-   int size, rank, tag;
+   int size, rank;
    MPI_Init(&argc, &argv);
    MPI_Comm_size(MPI_COMM_WORLD, &size);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   MPI_Status status;
 
    size_t m, n, nn;
    n = atoi(argv[1]); // number of internal vertical/horizontal nodes
-   m = n/s; // number of horizontal nodes for each process
+   m = n/size; // number of horizontal nodes for each process
    nn = 4*(n+1); // Fourier coefficients
    double h = 1.0/(n+1); // constant grid size
 
@@ -45,6 +44,7 @@ int main(int argc, char **argv) {
    auto *diag = new double[n];
    auto **b1 = mk2DArray<double>(m,n); // matrix to transform
    auto **b2 = mk2DArray<double>(n,m); // matrix to send
+   auto **b3 = mk2DArray<double>(n,m);
    auto *z = new double[nn];
 
    // x values for the internal nodes
@@ -76,12 +76,12 @@ int main(int argc, char **argv) {
    }
 
    // send the parts to the right processes
-   MPI_Alltoall(b2, m*m, MPI_DOUBLE, b2, m*m, MPI_DOUBLE, MPI_COMM_WORLD);
+   MPI_Alltoall(*b2, m*m, MPI_DOUBLE, *b3, m*m, MPI_DOUBLE, MPI_COMM_WORLD);
 
    // transpose
    for (size_t i = 0; i < m; i++) {
-      for (size_t j = 0; j < n) {
-         b1[i][j] = b2[j][i];
+      for (size_t j = 0; j < n; j++) {
+         b1[i][j] = b3[j][i];
       }
    }
 
@@ -90,6 +90,7 @@ int main(int argc, char **argv) {
       fstinv_(b1[i], &n, z, &nn);
    }
 
+   
    // The diagonal of the eigenvalue matrix of T
    for (size_t i = 0; i < n; i++) {
       diag[i] = 2.0 * (1.0 - cos((i+1)*M_PI/(n+1)));
@@ -114,12 +115,12 @@ int main(int argc, char **argv) {
    }
 
    // send the parts to the right processes
-   MPI_Alltoall(b2, m*m, MPI_DOUBLE, b2, m*m, MPI_DOUBLE, MPI_COMM_WORLD);
+   MPI_Alltoall(*b2, m*m, MPI_DOUBLE, *b3, m*m, MPI_DOUBLE, MPI_COMM_WORLD);
 
    // transpose
    for (size_t i = 0; i < m; i++) {
-      for (size_t j = 0; j < n) {
-         b1[i][j] = b2[j][i];
+      for (size_t j = 0; j < n; j++) {
+         b1[i][j] = b3[j][i];
       }
    }
 
@@ -136,8 +137,10 @@ int main(int argc, char **argv) {
       }
    }
 
+   // Get the maximum from all processes
    MPI_Allreduce(&u_max, &u_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
    
+   // only one process needs to print the result
    if (rank == 0) {
       printf("u_max = %e\n", u_max);
    }
@@ -154,8 +157,7 @@ int main(int argc, char **argv) {
 }
 
 double rhs(double x, double y) {
-    //return 2 * (y - y*y + x - x*x);
-   return x;
+   return 2 * (y - y*y + x - x*x);
 }
 
 void print_matrix(auto **b, size_t m, size_t n) {
