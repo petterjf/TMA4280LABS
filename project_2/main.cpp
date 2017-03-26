@@ -2,12 +2,17 @@
 #include <cstdlib>
 #include <cmath>
 #include <mpi.h>
-#include "mk2DArray.h"
 
 double rhs(double x, double y);
 double anal_soln(double x, double y);
 bool is_pow2(double x);
 void transpose(double **bt, double **b, size_t m, size_t n);
+
+template <typename T>
+T** mk_2D_array(size_t m, size_t n);
+
+template <typename T>
+void del_2D_array(T **arr);
 
 extern "C" void fst_(double *v, size_t *n, double *w, size_t *nn);
 extern "C" void fstinv_(double *v, size_t *n, double *w, size_t *nn);
@@ -36,10 +41,10 @@ int main(int argc, char **argv) {
    auto *grid_x = new double[m]; 
    auto *grid_y = new double[n]; 
    auto *diag = new double[n];
-   auto **soln = mk2DArray<double>(m,n); // the analytical solution
-   auto **b1 = mk2DArray<double>(m,n); // matrix to transform
-   auto **b2 = mk2DArray<double>(n,m); // matrix to send
-   auto **b3 = mk2DArray<double>(n,m);
+   auto **soln = mk_2D_array<double>(m,n); // the analytical solution
+   auto **b1 = mk_2D_array<double>(m,n); // matrix to transform
+   auto **b2 = mk_2D_array<double>(n,m); // matrix to send
+   auto **b3 = mk_2D_array<double>(n,m); // receive matrix
    auto *z = new double[nn];
 
    // x values for the internal nodes
@@ -118,26 +123,29 @@ int main(int argc, char **argv) {
 
    // Calculate maximal value of solution
    //double u_max = 0.0;
-   double max_error = 0;
+   double loc_max_error = 0;
    for (size_t i = 0; i < m; i++) {
       for (size_t j = 0; j < n; j++) {
          //u_max = u_max > b1[i][j] ? u_max : b1[i][j];
          double error = fabs(b1[i][j] - soln[i][j]);
-         max_error = max_error > error ? max_error : error;
+         loc_max_error = loc_max_error > error ? loc_max_error : error;
       }
    }
 
    // Get the maximum from all processes
    //MPI_Allreduce(&u_max, &u_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-   MPI_Allreduce(&max_error, &max_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+   double max_error;
+   MPI_Allreduce(&loc_max_error, &max_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
    
    // only one process needs to print the result
    if (rank == 0) {
       printf("u_max = %e\n", max_error);
    }
 
-   del2DArray(b1);
-   del2DArray(b2);
+   del_2D_array(b1);
+   del_2D_array(b2);
+   del_2D_array(b3);
+   del_2D_array(soln);
    delete [] z;
    delete [] diag;
    delete [] grid_x;
@@ -168,4 +176,19 @@ void transpose(double **bt, double **b, size_t m, size_t n) {
          bt[i][j] = b[j][i];
       }
    }
+}
+
+template <typename T>
+T** mk_2D_array(size_t m, size_t n) {
+   T** ptr = new T*[m];  // allocate pointers
+   T* pool = new T[m*n];  // allocate pool
+   for (size_t i = 0; i < m; ++i, pool += n)
+       ptr[i] = pool;
+   return ptr;
+}
+
+template <typename T>
+void del_2D_array(T **arr) {
+   delete [] arr[0];  // remove the pool
+   delete [] arr;     // remove the pointers
 }
