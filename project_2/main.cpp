@@ -113,7 +113,6 @@ int main(int argc, char **argv) {
    // send the parts to the right processes
    MPI_Alltoall(*b2, m*m, MPI_DOUBLE, *b3, m*m, MPI_DOUBLE, MPI_COMM_WORLD);
 
-   // transpose
    transpose(b1, b3, n, m);
 
    // inverse transform
@@ -121,19 +120,16 @@ int main(int argc, char **argv) {
       fstinv_(b1[i], &n, z, &nn);
    }
 
-   // Calculate maximal value of solution
-   //double u_max = 0.0;
+   // error for the process
    double loc_max_error = 0;
    for (size_t i = 0; i < m; i++) {
       for (size_t j = 0; j < n; j++) {
-         //u_max = u_max > b1[i][j] ? u_max : b1[i][j];
          double error = fabs(b1[i][j] - soln[i][j]);
          loc_max_error = loc_max_error > error ? loc_max_error : error;
       }
    }
 
-   // Get the maximum from all processes
-   //MPI_Allreduce(&u_max, &u_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+   // get the maximum from all processes
    double max_error;
    MPI_Allreduce(&loc_max_error, &max_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
    
@@ -156,7 +152,6 @@ int main(int argc, char **argv) {
 }
 
 double rhs(double x, double y) {
-   //return 2 * (y - y*y + x - x*x);
    return 5*M_PI*M_PI*anal_soln(x, y);
 }
 
