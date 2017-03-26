@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
    
    // only one process needs to print the result
    if (rank == 0) {
-      printf("u_max = %e\n", max_error);
+      std::cout << "max_error = " << std::scientific << max_error << std::endl;
    }
 
    del_2D_array(b1);
