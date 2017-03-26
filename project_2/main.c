@@ -68,6 +68,15 @@ int main(int argc, char **argv) {
         }
     }
 
+    // Calculate Btilde^T = S^-1 * (S * B)^T
+    for (size_t i = 0; i < m; i++) {
+        fst_(b[i], &n, z, &nn);
+    }
+    transpose(bt, b, m);
+    for (size_t i = 0; i < m; i++) {
+        fstinv_(bt[i], &n, z, &nn);
+    }
+    
 	MPI_Finalize();
 	return 0;
 }
