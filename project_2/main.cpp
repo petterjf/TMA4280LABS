@@ -14,8 +14,10 @@ T** mk_2D_array(size_t m, size_t n);
 template <typename T>
 void del_2D_array(T **arr);
 
-extern "C" void fst_(double *v, size_t *n, double *w, size_t *nn);
-extern "C" void fstinv_(double *v, size_t *n, double *w, size_t *nn);
+extern "C" {
+   void fst_(double *v, size_t *n, double *w, size_t *nn);
+   void fstinv_(double *v, size_t *n, double *w, size_t *nn);
+}
 
 int main(int argc, char **argv) {
    if (argc != 2) return 1;
@@ -29,7 +31,7 @@ int main(int argc, char **argv) {
    n = atoi(argv[1]); // number of internal vertical/horizontal nodes
    m = n/size; // number of vertical nodes for each process
    nn = 4*n; // Fourier coefficients
-   double h = 1.0/(n+1); // constant grid size
+   double h = 1.0/n; // constant grid size
 
    // check that the number of processes and internal nodes is a power of two
    if (!(is_pow2(size) && is_pow2(n))) {
@@ -87,7 +89,7 @@ int main(int argc, char **argv) {
 
    // The diagonal of the eigenvalue matrix of T
    for (size_t i = 0; i < n; i++) {
-      diag[i] = 2.0 * (1.0 - cos((i+1)*M_PI/(n+1)));
+      diag[i] = 2.0 * (1.0 - cos((i+1)*M_PI/n));
    }
    for (size_t i = 0; i < m; i++) {
       for (size_t j = 0; j < n; j++) {
@@ -115,13 +117,19 @@ int main(int argc, char **argv) {
 
    // inverse transform
    for (size_t i = 0; i < m; i++) {
-      fstinv_(b1[i], &n, z, &nn);
+      fstinv_(b1[i], &n , z, &nn);
    }
 
    // error for the process
    double loc_max_error = 0;
+
+   // exclude the last row if we are at the last element, because that row only contains gibberish
+   if (rank == size-1) {
+      m--;
+   }
+
    for (size_t i = 0; i < m; i++) {
-      for (size_t j = 0; j < n; j++) {
+      for (size_t j = 0; j < n-1; j++) {
          double error = fabs(b1[i][j] - soln[i][j]);
          loc_max_error = loc_max_error > error ? loc_max_error : error;
       }
