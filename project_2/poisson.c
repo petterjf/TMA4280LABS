@@ -24,6 +24,8 @@ typedef int bool;
 real *mk_1D_array(size_t n, bool zero);
 real **mk_2D_array(size_t n1, size_t n2, bool zero);
 void transpose(real **bt, real **b, size_t m);
+double anal_soln(double x, double y);
+void print_matrix(double **b, int m, int n);
 real rhs(real x, real y);
 void fst_(real *v, int *n, real *w, int *nn);
 void fstinv_(real *v, int *n, real *w, int *nn);
@@ -44,9 +46,9 @@ int main(int argc, char **argv) {
     real h = 1.0 / n;
 
     // Grid points
-    real *grid = mk_1D_array(n+1, false);
-    for (size_t i = 0; i < n+1; i++) {
-        grid[i] = i * h;
+    real *grid = mk_1D_array(m, false);
+    for (size_t i = 0; i < m; i++) {
+        grid[i] = (i+1) * h;
     }
 
     // The diagonal of the eigenvalue matrix of T
@@ -59,12 +61,15 @@ int main(int argc, char **argv) {
     real **b = mk_2D_array(m, m, false);
     real **bt = mk_2D_array(m, m, false);
     real *z = mk_1D_array(nn, false);
+    real **soln = mk_2D_array(m, m, false);
     for (size_t i = 0; i < m; i++) {
         for (size_t j = 0; j < m; j++) {
             b[i][j] = h * h * rhs(grid[i], grid[j]);
+            soln[i][j] = anal_soln(grid[i], grid[j]);
         }
     }
 
+    // print_matrix(b, m, m);
     // Calculate Btilde^T = S^-1 * (S * B)^T
     for (size_t i = 0; i < m; i++) {
         fst_(b[i], &n, z, &nn);
@@ -91,20 +96,22 @@ int main(int argc, char **argv) {
     }
 
     // Calculate maximal value of solution
-    double u_max = 0.0;
+    double max_error = 0;
     for (size_t i = 0; i < m; i++) {
         for (size_t j = 0; j < m; j++) {
-            u_max = u_max > b[i][j] ? u_max : b[i][j];
+            double error = fabs(b[i][j] - soln[i][j]);
+            max_error = max_error > error ? max_error : error;
         }
     }
 
-    printf("u_max = %e\n", u_max);
+    printf("max_error = %e\n", max_error);
 
     return 0;
 }
 
 real rhs(real x, real y) {
-    return 2 * (y - y*y + x - x*x);
+    //return 2 * (y - y*y + x - x*x);
+    return 5*M_PI*M_PI*anal_soln(x, y);
 }
 
 void transpose(real **bt, real **b, size_t m) {
@@ -136,4 +143,17 @@ real **mk_2D_array(size_t n1, size_t n2, bool zero) {
         ret[i] = ret[i-1] + n2;
     }
     return ret;
+}
+
+double anal_soln(double x, double y) {
+   return sin(M_PI*x)*sin(2*M_PI*y);
+}
+
+void print_matrix(double **b, int m, int n) {
+   for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+         printf("%f ", b[i][j]);
+      }
+      printf("\n");
+   }
 }
