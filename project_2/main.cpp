@@ -38,6 +38,11 @@ int main(int argc, char **argv) {
       MPI_Abort(MPI_COMM_WORLD, MPI_ERR_DIMS);
    }
 
+   double time;
+   if (rank == 0) {
+      time = MPI_Wtime();
+   }
+
    // vectors and matrices
    auto *grid_x = new double[m]; 
    auto *grid_y = new double[n]; 
@@ -123,7 +128,7 @@ int main(int argc, char **argv) {
    // error for the process
    double loc_max_error = 0;
 
-   // exclude the last row if we are at the last element, because that row only contains gibberish
+   // exclude the last row if we are at in last process, because that row only contains gibberish
    if (rank == size-1) {
       m--;
    }
@@ -138,11 +143,6 @@ int main(int argc, char **argv) {
    // get the maximum from all processes
    double max_error;
    MPI_Allreduce(&loc_max_error, &max_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-   
-   // only one process needs to print the result
-   if (rank == 0) {
-      std::cout << "max_error = " << std::scientific << max_error << std::endl;
-   }
 
    del_2D_array(b1);
    del_2D_array(b2);
@@ -152,6 +152,15 @@ int main(int argc, char **argv) {
    delete [] diag;
    delete [] grid_x;
    delete [] grid_y;
+
+   // we have to wait on everyone
+   MPI_Barrier(MPI_COMM_WORLD);
+   // only one process needs to print the result
+   if (rank == 0) {
+      std::cout << "max_error = " << std::scientific << max_error << std::endl;
+      time = MPI_Wtime() - time;
+      std::cout << "time = " << std::defaultfloat << time << " sec\n";
+   }
 
    MPI_Finalize();
    return 0;
