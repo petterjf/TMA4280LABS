@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
    size_t m, n, nn;
-   n = atoi(argv[2]); // number of internal vertical/horizontal nodes
+   n = atoi(argv[1]); // number of internal vertical/horizontal nodes
    m = n/size; // number of vertical nodes for each process
    nn = 4*n; // Fourier coefficients
    double h = 1.0/n; // constant grid size
