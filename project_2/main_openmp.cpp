@@ -3,6 +3,7 @@
 #include <cmath>
 #include <mpi.h>
 #include <omp.h>
+#include <sched.h>
 
 double rhs(double x, double y);
 double anal_soln(double x, double y);
@@ -52,16 +53,15 @@ int main(int argc, char **argv) {
    double *grid_x = new double[m]; 
    double *grid_y = new double[n]; 
    double *diag = new double[n];
-   double *z;
    double **soln = mk_2D_array<double>(m,n); // the analytical solution
    double **b1 = mk_2D_array<double>(m,n); // matrix to transform
    double **b2 = mk_2D_array<double>(n,m); // matrix to send
    double **b3 = mk_2D_array<double>(n,m); // receive matrix
 
    double max_error = 0;
-   #pragma omp parallel private(z)
+   #pragma omp parallel
    {
-      z = new double[nn];
+      double * z = new double[nn];
 
       // x values for the internal nodes
       #pragma omp for
@@ -165,7 +165,6 @@ int main(int argc, char **argv) {
          }
       }
       delete [] z;
-      std::cout << "I am " << omp_get_thread_num() << std::endl;
    }
 
    // get the maximum from all processes
