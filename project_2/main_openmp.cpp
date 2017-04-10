@@ -202,7 +202,7 @@ bool is_pow2(size_t n) {
 
 void transpose(double **bt, double **b, size_t m, size_t n) {
    // m and n are the number of rows and columns, respectively, for b
-   #pragma omp for
+   #pragma omp for collapse(2)
    for (size_t i = 0; i < n; i++) {
       for (size_t j = 0; j < m; j++) {
          bt[i][j] = b[j][i];
