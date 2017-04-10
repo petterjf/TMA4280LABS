@@ -3,7 +3,6 @@
 #include <cmath>
 #include <mpi.h>
 #include <omp.h>
-#include <sched.h>
 
 double rhs(double x, double y);
 double anal_soln(double x, double y);
@@ -29,20 +28,17 @@ int main(int argc, char **argv) {
    MPI_Comm_size(MPI_COMM_WORLD, &size);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-   size_t m, n, nn, t;
-   t = atoi(argv[1]); // number of OpenMP threads
+   size_t m, n, nn;
    n = atoi(argv[2]); // number of internal vertical/horizontal nodes
    m = n/size; // number of vertical nodes for each process
    nn = 4*n; // Fourier coefficients
    double h = 1.0/n; // constant grid size
 
    // check that the number of processes and internal nodes is a power of two
-   if (!(is_pow2(size) && is_pow2(t) && is_pow2(n))) {
-      std::cout << "n, arg 1 and arg 2 all need to be powers of two\n";
+   if (!(is_pow2(size) && is_pow2(n))) {
+      std::cout << "n and P both need to be powers of two\n";
       MPI_Abort(MPI_COMM_WORLD, MPI_ERR_DIMS);
    }
-
-   omp_set_num_threads(t);
 
    double time;
    if (rank == 0) {
@@ -182,7 +178,7 @@ int main(int argc, char **argv) {
    MPI_Barrier(MPI_COMM_WORLD);
    // only one process needs to print the result
    if (rank == 0) {
-      std::cout << "t = " << t << ", P = " << size << ", n = " << n << std::endl;
+      std::cout << "t = " << omp_get_num_threads() << ", P = " << size << ", n = " << n << std::endl;
       std::cout << "max_error = " << std::scientific << max_error << std::endl;
       time = MPI_Wtime() - time;
       std::cout << "time = " << std::defaultfloat << time << " sec\n";
