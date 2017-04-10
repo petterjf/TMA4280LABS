@@ -6,7 +6,7 @@
 
 double rhs(double x, double y);
 double anal_soln(double x, double y);
-bool is_pow2(double x);
+bool is_pow2(size_t n);
 void transpose(double **bt, double **b, size_t m, size_t n);
 
 template <typename T>
@@ -196,9 +196,8 @@ double anal_soln(double x, double y) {
    return sin(M_PI*x)*sin(2*M_PI*y);
 }
 
-bool is_pow2(double x) {
-   x = log(x)/log(2);
-   return (floor(x) == ceil(x));
+bool is_pow2(size_t n) {
+   return (n != 0) && ((n & (n - 1)) == 0);
 }
 
 void transpose(double **bt, double **b, size_t m, size_t n) {
