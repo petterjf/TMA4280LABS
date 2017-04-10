@@ -157,6 +157,7 @@ int main(int argc, char **argv) {
    MPI_Barrier(MPI_COMM_WORLD);
    // only one process needs to print the result
    if (rank == 0) {
+      std::cout << "n = " << n << ", P = " << size << std::endl;
       std::cout << "max_error = " << std::scientific << max_error << std::endl;
       time = MPI_Wtime() - time;
       std::cout << "time = " << std::defaultfloat << time << " sec\n";
