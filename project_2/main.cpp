@@ -44,14 +44,14 @@ int main(int argc, char **argv) {
    }
 
    // vectors and matrices
-   auto *grid_x = new double[m]; 
-   auto *grid_y = new double[n]; 
-   auto *diag = new double[n];
-   auto *z = new double[nn];
-   auto **soln = mk_2D_array<double>(m,n); // the analytical solution
-   auto **b1 = mk_2D_array<double>(m,n); // matrix to transform
-   auto **b2 = mk_2D_array<double>(n,m); // matrix to send
-   auto **b3 = mk_2D_array<double>(n,m); // receive matrix
+   double *grid_x = new double[m]; 
+   double *grid_y = new double[n]; 
+   double *diag = new double[n];
+   double *z = new double[nn];
+   double **soln = mk_2D_array<double>(m,n); // the analytical solution
+   double **b1 = mk_2D_array<double>(m,n); // matrix to transform
+   double **b2 = mk_2D_array<double>(n,m); // matrix to send
+   double **b3 = mk_2D_array<double>(n,m); // receive matrix
 
    // x values for the internal nodes
    for (size_t i = 0; i < m; i++) {
