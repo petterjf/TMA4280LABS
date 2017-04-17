@@ -23,8 +23,8 @@ extern "C" {
 int main(int argc, char **argv) {
    if (argc != 2) return 1;
 
-   int size, rank;
-   MPI_Init(&argc, &argv);
+   int size, rank, thrd;
+   MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &thrd);
    MPI_Comm_size(MPI_COMM_WORLD, &size);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -55,8 +55,10 @@ int main(int argc, char **argv) {
    double **b3 = mk_2D_array<double>(n,m); // receive matrix
 
    double max_error = 0;
+   int num_threads;
    #pragma omp parallel
    {
+      num_threads = omp_get_num_threads();
       double * z = new double[nn];
 
       // x values for the internal nodes
@@ -178,7 +180,7 @@ int main(int argc, char **argv) {
    MPI_Barrier(MPI_COMM_WORLD);
    // only one process needs to print the result
    if (rank == 0) {
-      std::cout << "t = " << omp_get_num_threads() << ", P = " << size << ", n = " << n << std::endl;
+      std::cout << "t = " << num_threads << ", P = " << size << ", n = " << n << std::endl;
       std::cout << "max_error = " << std::scientific << max_error << std::endl;
       time = MPI_Wtime() - time;
       std::cout << "time = " << std::defaultfloat << time << " sec\n";
