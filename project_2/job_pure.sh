@@ -12,4 +12,4 @@
 cd $PBS_O_WORKDIR
 module load gcc/6.3.0
 module load openmpi/2.0.1
-mpirun pure.out 4096
+mpirun pure 4096

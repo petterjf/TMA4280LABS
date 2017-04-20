@@ -13,4 +13,4 @@ cd $PBS_O_WORKDIR
 module load gcc/6.3.0
 module load openmpi/2.0.1
 #export OMP_SCHEDULE static
-mpirun hybrid.out 4096
+mpirun hybrid 4096
